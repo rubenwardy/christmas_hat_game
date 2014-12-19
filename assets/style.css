@@ -1,0 +1,32 @@
+html, body {
+	margin: 0;
+	padding: 0;
+	font-family: "Arial", sans-serif;
+	background: url('bg.png');
+}
+.canvas {
+	position: absolute;
+	top:0;
+	right:0;
+	bottom:0;
+	left:0;
+}
+#dialog {
+	position: fixed;
+	top: 20px;
+	left: 0;
+	right: 0;
+	margin: 0;
+	padding: 0;
+}
+#dialog_body {
+	width: 320px;
+	margin: auto;
+	background: white;
+	padding: 0.5em 1em 0.5em 1em;
+	border-radius: 5px;
+	text-align: center;
+}
+.resource {
+	display: none;
+}
