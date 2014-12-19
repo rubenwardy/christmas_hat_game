@@ -8,6 +8,52 @@ var snow = [];
 var last_snow = 0;
 var top_score = null;
 
+var levels = [
+	{
+		width: 400,
+		types: {
+			red: 1
+		},
+		interval: 1000,
+		advance: 15
+	},
+
+	{
+		width: 600,
+		types: {
+			red: 3,
+			brussel: 1
+		},
+		interval: 1000,
+		advance: 30
+	},
+
+	{
+		width: 600,
+		types: {
+			red: 1
+		},
+		interval: 600,
+		advance: 60
+	},
+
+	{
+		width: 600,
+		types: {
+			red: 3,
+			brussel: 1
+		},
+		interval: 700
+	}
+];
+
+var ball_templates = {
+	red: {id: "red", score: 1},
+	brussel: {id: "brussel", score: 1, score: 0, no_drop_penalty: true, hp: -1}
+}
+
+var this_level = levels[0];
+
 // Initialise Game
 function init()
 {
@@ -21,7 +67,10 @@ function init()
 	paddle = engine.ce.width / 2;
 }
 
-function levelUp() { level++; }
+function levelUp() {
+	this_level = levels[level];
+	level++;
+}
 
 // Update and draw the game state
 function tick(ce, c, dtime)
@@ -37,23 +86,34 @@ function tick(ce, c, dtime)
 	}
 
 	if (lifes > 0) {
-		if (level == 1) {
-			if (now > since_last + 1000) {
-				var spawn_width = 400;
-				since_last = now;
-				balls.push({x: Math.random() * spawn_width + ce.width/2 - spawn_width/2, y: 0, v: {x: 0, y: 0}, id: "red", score: 1});
+		if (now > since_last + this_level.interval) {
+			since_last = now;
+			var lottery = [];
+			if (this_level.types.red && this_level.types.red > 0) {
+				for (var i = 0; i < this_level.types.red; i++) {
+					lottery.push("red");
+				}
 			}
-			if (score > 20)
+
+
+			if (this_level.types.brussel && this_level.types.brussel > 0) {
+				for (var i = 0; i < this_level.types.brussel; i++) {
+					lottery.push("brussel");
+				}
+			}
+
+			var itemtype = lottery[Math.floor(Math.random() * lottery.length)];
+			var templ = ball_templates[itemtype];
+			var tmp = {x: Math.random() * this_level.width + ce.width/2 - this_level.width/2, y: 0, v: {x: 0, y: 0}, id: "red", score: 1};
+			for (key in templ) {
+				if (templ.hasOwnProperty(key)) {
+					tmp[key] = templ[key];
+				}
+			}
+			balls.push(tmp);
+
+			if (this_level.advance && this_level.advance > 0 && score > this_level.advance)
 				levelUp();
-		} else if (level == 2) {
-			if (now > since_last + 1000) {
-				var spawn_width = 600;
-				since_last = now;
-				if (Math.random() > 0.6)
-					balls.push({x: Math.random() * spawn_width + ce.width/2 - spawn_width/2, y: 0, v: {x: 0, y: 10}, id: "brussel", score: 0, no_drop_penalty: true, hp: -1});
-				else
-					balls.push({x: Math.random() * spawn_width + ce.width/2 - spawn_width/2, y: 0, v: {x: 0, y: 10}, id: "red", score: 1});
-			}
 		}
 	}
 
@@ -69,7 +129,7 @@ function tick(ce, c, dtime)
 		c.fillRect(one.x, one.y, 3, 3);
 		one.x += one.vx * dtime;
 		one.y += 100 * dtime;
-		if (one.y > ce.height - 100) {
+		if (one.y > ce.height - 50) {
 			snow.splice(i, 1);
 			i--;
 		}
@@ -131,7 +191,7 @@ function tick(ce, c, dtime)
 	c.font = "40px Arial";
 	c.fillText(score, 10, 40);
 	c.font = "16px Arial";
-	c.fillText("Level " + level, 10, 60);
+	c.fillText("Level " + level + " / 4", 10, 60);
 	c.fillText(lifes + " lifes remaining", 10, 80);
 	if (lifes <= 0)
 		c.fillText("You died, reload the page to restart.", 20, ce.height / 2 - 5);
